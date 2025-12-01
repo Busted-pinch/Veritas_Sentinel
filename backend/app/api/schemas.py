@@ -1,7 +1,12 @@
 # backend/app/api/schemas.py
 from pydantic import BaseModel
-from typing import Dict
+
+class FeatureInput(BaseModel):
+    step: float
+    amount: float
+    isFlaggedFraud: int
+
 
 class PredictRequest(BaseModel):
     user_id: str
-    features: Dict[str, float]
+    features: FeatureInput
