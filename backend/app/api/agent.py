@@ -1,5 +1,6 @@
 # backend/app/api/agent.py
-
+from fastapi import Depends
+from backend.app.core.security import get_current_admin
 from fastapi import APIRouter
 from pydantic import BaseModel
 from backend.app.services.agent_service import speculate_user
