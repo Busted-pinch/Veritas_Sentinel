@@ -1,0 +1,494 @@
+# Veritas Sentinel - Complete Deployment Guide
+
+## 📋 Prerequisites
+
+- Backend API running (FastAPI on port 8000)
+- Modern web browser (Chrome, Firefox, Safari, Edge)
+- Web server or static file server
+- MongoDB running with data
+
+## 🗂️ Complete File Structure
+
+```
+veritas-sentinel/
+├── backend/                    # Your existing backend
+│   └── ...
+└── frontend/                   # Frontend files
+    ├── index.html             # Landing page
+    ├── login.html             # Login page
+    ├── admin_dashboard.html   # Admin dashboard
+    ├── user_dashboard.html    # User dashboard
+    ├── css/
+    │   ├── login.css
+    │   ├── admin_dashboard.css
+    │   └── user_dashboard.css
+    └── js/
+        ├── config.js                    # Configuration
+        ├── login.js                     # Login logic
+        ├── admin_dashboard.js           # Admin main logic
+        ├── admin_dashboard_alerts.js    # Admin alerts logic
+        └── user_dashboard.js            # User logic
+```
+
+## 🚀 Step-by-Step Setup
+
+### Step 1: Create Directory Structure
+
+```bash
+# From your project root
+mkdir -p frontend/css frontend/js
+```
+
+### Step 2: Download/Copy All Files
+
+Place the files in their respective directories:
+
+**HTML Files** → `frontend/`
+- index.html
+- login.html
+- admin_dashboard.html
+- user_dashboard.html
+
+**CSS Files** → `frontend/css/`
+- login.css
+- admin_dashboard.css
+- user_dashboard.css
+
+**JavaScript Files** → `frontend/js/`
+- config.js
+- login.js
+- admin_dashboard.js
+- admin_dashboard_alerts.js
+- user_dashboard.js
+
+### Step 3: Configure Backend URL
+
+Edit `frontend/js/config.js`:
+
+```javascript
+const CONFIG = {
+    API_BASE_URL: 'http://localhost:8000',  // ← Change this for production
+    // ... rest of config
+};
+```
+
+**For Production:**
+```javascript
+API_BASE_URL: 'https://your-api-domain.com'
+```
+
+### Step 4: Update CORS in Backend
+
+Ensure your backend allows the frontend origin:
+
+```python
+# backend/app/main.py
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://your-frontend-domain.com",  # Add production domain
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+### Step 5: Start Backend
+
+```bash
+cd backend
+uvicorn app.main:app --reload --port 8000
+```
+
+Verify backend is running:
+```bash
+curl http://localhost:8000/health
+# Should return: {"status":"ok"}
+```
+
+### Step 6: Serve Frontend
+
+Choose one method:
+
+**Method A: Python HTTP Server (Recommended for Development)**
+```bash
+cd frontend
+python -m http.server 5173
+```
+
+**Method B: Node.js http-server**
+```bash
+npm install -g http-server
+cd frontend
+http-server -p 5173 -c-1
+```
+
+**Method C: VS Code Live Server**
+1. Install "Live Server" extension
+2. Right-click on `index.html`
+3. Select "Open with Live Server"
+
+### Step 7: Access Application
+
+Open browser and navigate to:
+```
+http://localhost:5173/index.html
+```
+
+Or directly to login:
+```
+http://localhost:5173/login.html
+```
+
+## 👤 Creating Test Users
+
+### Create Admin User
+
+```bash
+# Using curl
+curl -X POST http://localhost:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -d '{
+    "email": "admin@veritas.com",
+    "password": "admin123",
+    "role": "admin"
+  }'
+```
+
+### Create Regular User
+
+```bash
+curl -X POST http://localhost:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -d '{
+    "email": "user@veritas.com",
+    "password": "user123",
+    "role": "user"
+  }'
+```
+
+**Note:** Registration is admin-only. You'll need to create the first admin directly in MongoDB or modify the backend temporarily.
+
+### Create First Admin in MongoDB
+
+```javascript
+// Connect to MongoDB
+use Veritas_Sentinel
+
+// Create admin user
+db.users.insertOne({
+    email: "admin@veritas.com",
+    password_hash: "$2b$12$...",  // Generate with bcrypt
+    role: "admin",
+    status: "active",
+    created_at: new ISODate()
+})
+```
+
+To generate password hash:
+```python
+from passlib.context import CryptContext
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+hash = pwd_context.hash("admin123")
+print(hash)
+```
+
+## 🧪 Testing the Application
+
+### 1. Test Login
+
+1. Go to `http://localhost:5173/login.html`
+2. Enter credentials:
+   - Email: `admin@veritas.com`
+   - Password: `admin123`
+3. Click "Sign In"
+4. Should redirect to admin dashboard
+
+### 2. Test Admin Dashboard
+
+Once logged in as admin:
+
+**Overview Tab:**
+- Should show user count, alerts, transactions
+- Charts should render with data from backend
+
+**Users Tab:**
+- Should list all users
+- Search should filter by email
+
+**Analytics Tab:**
+- Geographic map should show transaction locations
+- Charts should display trend data
+
+**Alerts Tab:**
+- Should list all alerts
+- Filter dropdown should work
+- Resolve button should open modal
+
+**Intelligence Tab:**
+- Enter a user ID
+- Click "Analyze"
+- Should show AI-powered insights
+
+### 3. Test User Dashboard
+
+1. Logout from admin
+2. Login as regular user
+3. Check dashboard stats
+4. Create new transaction
+5. View risk analysis result
+
+## 🐛 Common Issues & Solutions
+
+### Issue 1: CORS Errors
+
+**Symptom:** Console shows CORS policy errors
+
+**Solution:**
+1. Check backend CORS configuration
+2. Ensure frontend origin is in `allow_origins`
+3. Restart backend after changes
+
+### Issue 2: 401 Unauthorized
+
+**Symptom:** Automatically logged out or can't access pages
+
+**Solution:**
+1. Check token in localStorage (F12 → Application → Local Storage)
+2. Token may have expired (re-login)
+3. Verify backend JWT_SECRET_KEY is consistent
+
+### Issue 3: Charts Not Rendering
+
+**Symptom:** Empty chart areas or errors in console
+
+**Solution:**
+1. Check if Chart.js CDN is loaded
+2. Verify API returns data
+3. Check browser console for errors
+4. Ensure canvas elements have proper IDs
+
+### Issue 4: Map Not Loading
+
+**Symptom:** Map area is blank
+
+**Solution:**
+1. Check Leaflet CSS is loaded
+2. Verify Leaflet JS is loaded
+3. Check API returns valid lat/lon coordinates
+4. Ensure `#geoMap` div has height set
+
+### Issue 5: Blank Page After Login
+
+**Symptom:** White/blank page after successful login
+
+**Solution:**
+1. Check browser console for errors
+2. Verify HTML file paths are correct
+3. Check if user role is correctly set
+4. Clear localStorage and re-login
+
+## 🔒 Security Best Practices
+
+### Development
+
+1. **Use HTTPS** even in development (use mkcert)
+2. **Never commit** real API keys or tokens
+3. **Use environment variables** for sensitive config
+4. **Rotate JWT secrets** regularly
+
+### Production
+
+1. **Enable HTTPS** (Let's Encrypt recommended)
+2. **Set secure CORS** (specific origins only)
+3. **Use strong JWT secrets** (at least 32 random characters)
+4. **Implement rate limiting** on backend
+5. **Add CSP headers** for XSS protection
+6. **Enable HSTS** (HTTP Strict Transport Security)
+7. **Minimize token expiry** time
+8. **Implement refresh tokens** for better UX
+
+## 📦 Production Deployment
+
+### Option 1: Netlify (Easiest)
+
+```bash
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Deploy
+cd frontend
+netlify deploy --prod
+```
+
+Update `js/config.js` with production API URL.
+
+### Option 2: Vercel
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy
+cd frontend
+vercel --prod
+```
+
+### Option 3: AWS S3 + CloudFront
+
+```bash
+# Upload to S3
+aws s3 sync frontend/ s3://your-bucket-name/ \
+  --acl public-read \
+  --cache-control max-age=31536000
+
+# Invalidate CloudFront
+aws cloudfront create-invalidation \
+  --distribution-id YOUR_DIST_ID \
+  --paths "/*"
+```
+
+### Option 4: Docker
+
+Create `Dockerfile` in frontend:
+
+```dockerfile
+FROM nginx:alpine
+COPY . /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+Build and run:
+```bash
+docker build -t veritas-frontend .
+docker run -p 80:80 veritas-frontend
+```
+
+## 🎯 Performance Optimization
+
+### 1. Minify Assets
+
+```bash
+# CSS
+npx csso css/login.css -o css/login.min.css
+npx csso css/admin_dashboard.css -o css/admin_dashboard.min.css
+npx csso css/user_dashboard.css -o css/user_dashboard.min.css
+
+# JavaScript
+npx terser js/login.js -o js/login.min.js -c -m
+npx terser js/admin_dashboard.js -o js/admin_dashboard.min.js -c -m
+npx terser js/user_dashboard.js -o js/user_dashboard.min.js -c -m
+```
+
+Update HTML to reference `.min` files.
+
+### 2. Enable Caching
+
+Add `.htaccess` (Apache) or nginx config:
+
+```nginx
+# nginx
+location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+}
+```
+
+### 3. Use CDN for Libraries
+
+Already implemented:
+- Chart.js from cdn.jsdelivr.net
+- Leaflet from unpkg.com
+
+### 4. Compress Images
+
+Use tools like:
+- ImageOptim
+- TinyPNG
+- SVGO for SVG optimization
+
+## 📊 Monitoring & Analytics
+
+### Add Google Analytics
+
+In `<head>` of all HTML files:
+
+```html
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'GA_MEASUREMENT_ID');
+</script>
+```
+
+### Error Tracking (Sentry)
+
+```html
+<script src="https://js.sentry-cdn.com/YOUR_DSN.min.js"></script>
+<script>
+  Sentry.init({ dsn: 'YOUR_DSN' });
+</script>
+```
+
+## 🔄 Updates & Maintenance
+
+### Update CDN Versions
+
+Check for updates:
+- Chart.js: https://www.chartjs.org/
+- Leaflet: https://leafletjs.com/
+
+### Browser Compatibility
+
+Tested on:
+- ✅ Chrome 90+
+- ✅ Firefox 88+
+- ✅ Safari 14+
+- ✅ Edge 90+
+
+### Progressive Enhancement
+
+Features degrade gracefully:
+- Charts → Fallback message
+- Maps → Text list of locations
+- Animations → Static UI
+
+## 📝 Checklist Before Going Live
+
+- [ ] Backend API is accessible from frontend domain
+- [ ] CORS configured correctly
+- [ ] HTTPS enabled
+- [ ] Environment variables set
+- [ ] Assets minified
+- [ ] CDN configured (optional)
+- [ ] Error tracking enabled
+- [ ] Analytics configured
+- [ ] Test all user flows
+- [ ] Test on multiple browsers
+- [ ] Test on mobile devices
+- [ ] Review security headers
+- [ ] Backup database
+- [ ] Monitor logs
+
+## 🎉 You're Done!
+
+Your Veritas Sentinel frontend is now deployed and ready to use!
+
+For support or issues:
+1. Check browser console for errors
+2. Review backend logs
+3. Verify API endpoints are responding
+4. Test with curl/Postman first
+
+---
+
+**Remember:** This is a fraud detection system handling sensitive data. Always prioritize security and compliance with relevant regulations (PCI DSS, GDPR, etc.).

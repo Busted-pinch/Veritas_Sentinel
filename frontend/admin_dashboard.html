@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Veritas Sentinel</title>
+    <link rel="stylesheet" href="css/admin_dashboard.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    <span>Veritas</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="overview">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/>
+                        <rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/>
+                        <rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                    <span>Overview</span>
+                </a>
+
+                <a href="#" class="nav-item" data-page="users">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <span>Users</span>
+                </a>
+
+                <a href="#" class="nav-item" data-page="analytics">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>Analytics</span>
+                </a>
+
+                <a href="#" class="nav-item" data-page="alerts">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <span>Alerts</span>
+                    <span class="badge" id="alertsBadge">0</span>
+                </a>
+
+                <a href="#" class="nav-item" data-page="intelligence">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <span>Intelligence</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <span id="userInitials">A</span>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Admin</div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                </div>
+                <button class="btn-logout" id="logoutBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <button class="btn-menu" id="menuBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+                <h1 class="page-title" id="pageTitle">Overview</h1>
+                <div class="top-bar-actions">
+                    <button class="btn-icon" id="refreshBtn" title="Refresh Data">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"/>
+                            <polyline points="1 20 1 14 7 14"/>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content Container -->
+            <div class="content-wrapper">
+                <!-- Overview Page -->
+                <div class="page-content active" id="overviewPage">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-label">Total Users</div>
+                                <div class="stat-value" id="totalUsers">-</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-label">Open Alerts</div>
+                                <div class="stat-value" id="openAlerts">-</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"/>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-label">Transactions Today</div>
+                                <div class="stat-value" id="txnsToday">-</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-label">Avg Risk Score</div>
+                                <div class="stat-value" id="avgRisk">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>Global Risk Trend (30 Days)</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="riskTrendChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>Risk Level Distribution</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="riskDistributionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Page -->
+                <div class="page-content" id="usersPage">
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h3>All Users</h3>
+                            <div class="search-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <path d="m21 21-4.35-4.35"/>
+                                </svg>
+                                <input type="text" id="userSearch" placeholder="Search by email...">
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="usersTable">
+                                <thead>
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody">
+                                    <tr><td colspan="5" class="loading">Loading users...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Page -->
+                <div class="page-content" id="analyticsPage">
+                    <div class="analytics-grid">
+                        <div class="chart-card full-width">
+                            <div class="chart-header">
+                                <h3>Geographic Risk Hotspots</h3>
+                                <select id="geoTimeRange">
+                                    <option value="7">Last 7 Days</option>
+                                    <option value="30" selected>Last 30 Days</option>
+                                    <option value="90">Last 90 Days</option>
+                                </select>
+                            </div>
+                            <div id="geoMap" style="height: 500px; border-radius: 12px; overflow: hidden;"></div>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>Daily Transaction Volume</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="volumeChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>Fraud Probability Trends</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="fraudTrendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts Page -->
+                <div class="page-content" id="alertsPage">
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h3>Alert Management</h3>
+                            <div class="filter-group">
+                                <select id="alertFilter">
+                                    <option value="all">All Alerts</option>
+                                    <option value="open">Open</option>
+                                    <option value="closed">Closed</option>
+                                    <option value="confirmed_fraud">Confirmed Fraud</option>
+                                    <option value="false_positive">False Positive</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="alertsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Alert ID</th>
+                                        <th>User ID</th>
+                                        <th>Risk Level</th>
+                                        <th>Risk Score</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="alertsTableBody">
+                                    <tr><td colspan="7" class="loading">Loading alerts...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Intelligence Page -->
+                <div class="page-content" id="intelligencePage">
+                    <div class="intel-search-card">
+                        <h3>User Intelligence Search</h3>
+                        <div class="intel-search-box">
+                            <input type="text" id="intelUserId" placeholder="Enter User ID">
+                            <button class="btn-primary" id="searchIntelBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <path d="m21 21-4.35-4.35"/>
+                                </svg>
+                                Analyze
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="intelResults" style="display: none;">
+                        <div class="intel-grid">
+                            <div class="intel-card">
+                                <h4>User Profile</h4>
+                                <div id="intelProfile"></div>
+                            </div>
+
+                            <div class="intel-card">
+                                <h4>Risk Trend (30 Days)</h4>
+                                <canvas id="intelRiskChart"></canvas>
+                            </div>
+
+                            <div class="intel-card full-width">
+                                <h4>AI Analysis</h4>
+                                <div id="intelAiAnalysis"></div>
+                            </div>
+
+                            <div class="intel-card">
+                                <h4>Recent Transactions</h4>
+                                <div id="intelTransactions"></div>
+                            </div>
+
+                            <div class="intel-card">
+                                <h4>Recent Alerts</h4>
+                                <div id="intelAlerts"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Alert Resolution Modal -->
+    <div class="modal" id="alertModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Resolve Alert</h3>
+                <button class="btn-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="alertStatus">
+                        <option value="closed">Closed</option>
+                        <option value="false_positive">False Positive</option>
+                        <option value="confirmed_fraud">Confirmed Fraud</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Note (Optional)</label>
+                    <textarea id="alertNote" rows="3" placeholder="Add resolution notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelResolve">Cancel</button>
+                <button class="btn-primary" id="confirmResolve">Resolve Alert</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/admin_dashboard.js"></script>
+</body>
+</html>

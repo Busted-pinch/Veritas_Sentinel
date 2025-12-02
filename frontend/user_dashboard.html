@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Veritas Sentinel</title>
+    <link rel="stylesheet" href="css/user_dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    <span>Veritas</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/>
+                        <rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/>
+                        <rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="#" class="nav-item" data-page="new-transaction">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="16"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                    </svg>
+                    <span>New Transaction</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <span id="userInitials">U</span>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">User</div>
+                        <div class="user-role">Member</div>
+                    </div>
+                </div>
+                <button class="btn-logout" id="logoutBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                <div class="top-bar-actions">
+                    <button class="btn-icon" id="refreshBtn" title="Refresh">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"/>
+                            <polyline points="1 20 1 14 7 14"/>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Dashboard Page -->
+                <div class="page-content active" id="dashboardPage">
+                    <div class="welcome-banner">
+                        <div class="welcome-text">
+                            <h2>Welcome back, <span id="welcomeName">User</span>!</h2>
+                            <p>Your account security status and recent activity</p>
+                        </div>
+                        <div class="trust-badge">
+                            <div class="trust-circle">
+                                <svg class="trust-ring">
+                                    <circle cx="50" cy="50" r="45" />
+                                    <circle cx="50" cy="50" r="45" id="trustProgressCircle" />
+                                </svg>
+                                <div class="trust-score">
+                                    <span id="trustScoreValue">--</span>
+                                    <span class="trust-label">Trust Score</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"/>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-label">Total Transactions</div>
+                                <div class="stat-value" id="totalTxns">--</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-label">Avg Risk Score</div>
+                                <div class="stat-value" id="avgRisk">--</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-label">Avg Transaction</div>
+                                <div class="stat-value" id="avgAmount">--</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-label">High Risk Txns</div>
+                                <div class="stat-value" id="highRiskCount">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Your Risk Trend (Last 30 Days)</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="riskTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="info-message">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                        <div>
+                            <strong>Your data is secure</strong>
+                            <p>All transactions are monitored in real-time using advanced AI algorithms to ensure your financial safety.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- New Transaction Page -->
+                <div class="page-content" id="new-transactionPage">
+                    <div class="transaction-form-card">
+                        <h2>Create New Transaction</h2>
+                        <p class="form-subtitle">Enter transaction details for risk analysis</p>
+
+                        <form id="transactionForm" class="transaction-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="amount">Amount (INR) *</label>
+                                    <input type="number" id="amount" name="amount" required step="0.01" min="0.01" placeholder="1000.00">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="channel">Channel *</label>
+                                    <select id="channel" name="channel" required>
+                                        <option value="">Select Channel</option>
+                                        <option value="UPI">UPI</option>
+                                        <option value="CARD">Card</option>
+                                        <option value="NET_BANKING">Net Banking</option>
+                                        <option value="WALLET">Wallet</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="merchantType">Merchant Type</label>
+                                    <input type="text" id="merchantType" name="merchantType" placeholder="e.g., retail, food, entertainment">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="currency">Currency</label>
+                                    <select id="currency" name="currency">
+                                        <option value="INR">INR</option>
+                                        <option value="USD">USD</option>
+                                        <option value="EUR">EUR</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h4>Location (Optional)</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="city">City</label>
+                                        <input type="text" id="city" name="city" placeholder="Mumbai">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="country">Country</label>
+                                        <input type="text" id="country" name="country" value="India">
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="latitude">Latitude</label>
+                                        <input type="number" id="latitude" name="latitude" step="any" placeholder="19.0760">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="longitude">Longitude</label>
+                                        <input type="number" id="longitude" name="longitude" step="any" placeholder="72.8777">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h4>Device Info (Optional)</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="deviceType">Device Type</label>
+                                        <input type="text" id="deviceType" name="deviceType" placeholder="mobile">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="deviceOS">Operating System</label>
+                                        <input type="text" id="deviceOS" name="deviceOS" placeholder="Android">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" id="resetForm">Reset</button>
+                                <button type="submit" class="btn-primary" id="submitBtn">
+                                    <span>Submit Transaction</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9 11 12 14 22 4"/>
+                                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="resultCard" class="result-card" style="display: none;">
+                        <div class="result-header">
+                            <h3>Transaction Analysis Result</h3>
+                            <button class="btn-close" id="closeResult">&times;</button>
+                        </div>
+                        <div id="resultContent"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader"></div>
+        <p>Processing transaction...</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="js/user_dashboard.js"></script>
+</body>
+</html>
