@@ -10,12 +10,24 @@ from backend.app.core.security import (
     verify_password,
     create_access_token,
     get_current_admin,
+    get_current_user,
 )
 from backend.app.db.mongo import users_col
 from backend.app.db.models.user import UserCreate, UserPublic
 
 router = APIRouter()
 
+@router.get("/me")
+def read_me(current_user: dict = Depends(get_current_user)):
+    """
+    Return current user's basic info from token + DB.
+    Good for frontend bootstrapping.
+    """
+    return {
+        "user_id": current_user["user_id"],
+        "email": current_user["email"],
+        "role": current_user["role"],
+    }
 
 # ---------- ADMIN-ONLY REGISTER ----------
 

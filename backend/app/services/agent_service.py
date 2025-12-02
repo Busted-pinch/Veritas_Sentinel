@@ -1,8 +1,10 @@
+# backend/app/services/agent_service.py
+
 import os
 from statistics import mean
+
 from backend.app.db.mongo import txns_col, profiles_col
 from backend.app.services.llm_client import LLMClient
-
 
 llm = LLMClient(provider=os.getenv("LLM_PROVIDER", "openai"))
 
@@ -67,12 +69,12 @@ RECENT TRANSACTIONS (Last {len(txns)}):
 - Risk Levels: {risk_level_counts}
 
 Return ONLY valid JSON in the structure:
-{
+{{
   "speculation_score": <number>,
   "risk_level": "<string>",
   "explanation": "<string>",
   "indicators": ["...", "..."]
-}
+}}
 """
 
     try:
