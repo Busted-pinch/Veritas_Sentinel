@@ -1,6 +1,4 @@
-<p align="center">
-# Veritas Sentinel
-</p>
+<h1 align="center">Veritas Sentinel</h1>
 <p align="center">
 <img src="https://raw.githubusercontent.com/Busted-pinch/Veritas_Sentinel/main/frontend/images/Banner.png" width="650" height="325">
 </p>
