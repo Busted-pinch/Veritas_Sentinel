@@ -89,6 +89,12 @@ function setupEventListeners() {
     document.getElementById('closeModal')?.addEventListener('click', closeModal);
     document.getElementById('cancelResolve')?.addEventListener('click', closeModal);
     document.getElementById('confirmResolve')?.addEventListener('click', confirmResolveAlert);
+     // Create user form
+    document.getElementById('createUserForm')?.addEventListener('submit', handleCreateUser);
+    document.getElementById('resetCreateUser')?.addEventListener('click', () => {
+        document.getElementById('createUserForm').reset();
+    });
+
 }
 
 function navigateToPage(page) {
@@ -281,22 +287,54 @@ async function loadUsers(query = '') {
 function renderUsersTable(users) {
     const tbody = document.getElementById('usersTableBody');
     
-    if (users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="loading">No users found</td></tr>';
+    if (!users || users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="loading">No users found</td></tr>';
         return;
     }
 
-    tbody.innerHTML = users.map(user => `
-        <tr>
-            <td>${user.email}</td>
-            <td><span class="badge-status ${user.role === 'admin' ? 'badge-high' : 'badge-low'}">${user.role}</span></td>
-            <td><span class="badge-status badge-${user.status}">${user.status}</span></td>
-            <td>${new Date(user.created_at).toLocaleDateString()}</td>
-            <td>
-                <button class="btn-action btn-view" onclick="viewUserIntel('${user.user_id}')">View Intel</button>
-            </td>
-        </tr>
-    `).join('');
+    const admins = users.filter(u => u.role === 'admin');
+    const normals = users.filter(u => u.role !== 'admin');
+
+    const renderRow = (user) => {
+        const intelKey = user.user_code || user.email || user.user_id; // prefer code, then email, then internal id
+
+        return `
+            <tr>
+                <td>${user.user_code || '—'}</td>
+                <td>${user.name || '—'}</td>
+                <td>${user.email}</td>
+                <td><span class="badge-status ${user.role === 'admin' ? 'badge-high' : 'badge-low'}">${user.role}</span></td>
+                <td><span class="badge-status badge-${user.status}">${user.status}</span></td>
+                <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : '—'}</td>
+                <td>
+                    <button class="btn-action btn-view" onclick="viewUserIntel('${intelKey}')">
+                        View Intel
+                    </button>
+                </td>
+            </tr>
+        `;
+    }
+    let html = '';
+
+    if (admins.length) {
+        html += `
+            <tr class="users-section-row">
+                <td colspan="7">Admins</td>
+            </tr>
+            ${admins.map(renderRow).join('')}
+        `;
+    }
+
+    if (normals.length) {
+        html += `
+            <tr class="users-section-row">
+                <td colspan="7">Users</td>
+            </tr>
+            ${normals.map(renderRow).join('')}
+        `;
+    }
+
+    tbody.innerHTML = html || '<tr><td colspan="7" class="loading">No users found</td></tr>';
 }
 
 function searchUsers(e) {
@@ -304,11 +342,70 @@ function searchUsers(e) {
     loadUsers(query);
 }
 
-window.viewUserIntel = (userId) => {
-    document.getElementById('intelUserId').value = userId;
+window.viewUserIntel = (identifier) => {
+    document.getElementById('intelUserId').value = identifier;
     navigateToPage('intelligence');
     setTimeout(() => searchIntelligence(), 300);
 };
+
+async function handleCreateUser(e) {
+    e.preventDefault();
+
+    const nameInput = document.getElementById('newUserName');
+    const emailInput = document.getElementById('newUserEmail');
+    const passwordInput = document.getElementById('newUserPassword');
+    const roleSelect = document.getElementById('newUserRole');
+
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const role = roleSelect.value || 'user';
+
+    if (!name || !email || !password) {
+        if (typeof showNotification === 'function') {
+            showNotification('Name, email and password are required', 'warning');
+        } else {
+            alert('Name, email and password are required');
+        }
+        return;
+    }
+
+    try {
+        const result = await apiCall('/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({ name, email, password, role })
+        });
+
+        if (result && result.detail) {
+            if (typeof showNotification === 'function') {
+                showNotification(result.detail, 'error');
+            } else {
+                alert(result.detail);
+            }
+            return;
+        }
+
+        if (typeof showNotification === 'function') {
+            const code = result.user_code || 'user';
+            showNotification(`User ${result.name || result.email} (${code}) created successfully`, 'success');
+        } else {
+            alert(`User ${result.name || result.email} created successfully`);
+        }
+
+        document.getElementById('createUserForm').reset();
+
+        const currentQuery = document.getElementById('userSearch')?.value || '';
+        loadUsers(currentQuery);
+    } catch (error) {
+        console.error('Error creating user:', error);
+        const msg = error?.message || 'Failed to create user';
+        if (typeof showNotification === 'function') {
+            showNotification(msg, 'error');
+        } else {
+            alert(msg);
+        }
+    }
+}
 
 // ===== ANALYTICS PAGE =====
 async function loadAnalytics() {
@@ -463,5 +560,3 @@ function renderFraudTrendChart(days) {
         }
     });
 }
-
-// Continued in next artifact...

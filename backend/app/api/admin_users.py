@@ -8,21 +8,25 @@ from bson import ObjectId
 
 router = APIRouter()
 
-
 @router.get("/users")
 def list_users(
-    q: Optional[str] = Query(None, description="Email search substring"),
+    q: Optional[str] = Query(None, description="Email or user_code substring"),
     limit: int = 50,
     admin: dict = Depends(get_current_admin),
 ) -> List[dict]:
     """
     Admin-only: list users with basic info.
-    Supports simple email substring search.
+    Supports simple email / user_code substring search.
     """
 
     query = {}
     if q:
-        query = {"email": {"$regex": q, "$options": "i"}}
+        query = {
+            "$or": [
+                {"email": {"$regex": q, "$options": "i"}},
+                {"user_code": {"$regex": q, "$options": "i"}},
+            ]
+        }
 
     cursor = users_col.find(query).sort("created_at", -1).limit(limit)
 
@@ -30,7 +34,9 @@ def list_users(
     for u in cursor:
         users.append(
             {
-                "user_id": str(u["_id"]),
+                "user_id": str(u["_id"]),              # internal id
+                "user_code": u.get("user_code"),       # human-readable
+                "name": u.get("name"),
                 "email": u.get("email"),
                 "role": u.get("role"),
                 "status": u.get("status", "active"),
@@ -38,3 +44,4 @@ def list_users(
             }
         )
     return users
+

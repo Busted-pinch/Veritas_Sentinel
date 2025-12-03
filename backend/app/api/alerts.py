@@ -23,7 +23,8 @@ def list_alerts(admin: dict = Depends(get_current_admin)):
         alerts.append(
             {
                 "alert_id": a.get("alert_id"),
-                "user_id": a.get("user_id"),
+                "user_id": a.get("user_id"),             # internal
+                "user_code": a.get("user_code"),
                 "txn_id": a.get("txn_id"),
                 "risk_level": a.get("risk_level"),
                 "final_risk_score": a.get("final_risk_score"),

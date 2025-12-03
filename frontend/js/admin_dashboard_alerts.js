@@ -1,4 +1,23 @@
 // ===== ALERTS PAGE ===== (Continuation of admin_dashboard.js)
+function looksLikeMongoId(value) {
+    return /^[a-fA-F0-9]{24}$/.test(value);
+}
+
+async function resolveUserId(rawInput) {
+    // If the admin pasted internal id, just use it.
+    if (looksLikeMongoId(rawInput)) {
+        return rawInput;
+    }
+
+    // Otherwise, search by user_code or email via admin/users
+    const users = await apiCall(`/api/admin/users?q=${encodeURIComponent(rawInput)}`);
+    if (!Array.isArray(users) || users.length === 0) {
+        throw new Error('User not found');
+    }
+
+    // Take the first match for now
+    return users[0].user_id;
+}
 
 async function loadAlerts() {
     try {
@@ -18,7 +37,7 @@ async function loadAlerts() {
 function renderAlertsTable(alerts) {
     const tbody = document.getElementById('alertsTableBody');
     
-    if (alerts.length === 0) {
+    if (!alerts || alerts.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="loading">No alerts found</td></tr>';
         return;
     }
@@ -26,7 +45,7 @@ function renderAlertsTable(alerts) {
     tbody.innerHTML = alerts.map(alert => `
         <tr>
             <td>${alert.alert_id}</td>
-            <td>${alert.user_id}</td>
+            <td>${alert.user_code || alert.user_id}</td>
             <td><span class="badge-status badge-${alert.risk_level}">${alert.risk_level}</span></td>
             <td>${alert.final_risk_score}</td>
             <td><span class="badge-status badge-${alert.status}">${alert.status}</span></td>
@@ -66,7 +85,6 @@ async function confirmResolveAlert() {
         closeModal();
         loadAlerts();
         
-        // Show success message
         showNotification('Alert resolved successfully', 'success');
     } catch (error) {
         console.error('Error resolving alert:', error);
@@ -76,18 +94,31 @@ async function confirmResolveAlert() {
 
 // ===== INTELLIGENCE PAGE =====
 async function searchIntelligence() {
-    const userId = document.getElementById('intelUserId').value.trim();
+    const inputEl = document.getElementById('intelUserId');
+    const raw = inputEl.value.trim();
     
-    if (!userId) {
-        showNotification('Please enter a User ID', 'warning');
+    if (!raw) {
+        showNotification('Please enter a User Code or Email', 'warning');
+        return;
+    }
+
+    let internalId;
+    try {
+        // 🔹 First resolve whatever was typed (user_code/email/id) → internal user_id
+        internalId = await resolveUserId(raw);
+    } catch (error) {
+        console.error('Error resolving user:', error);
+        showNotification('User not found for that code/email', 'error');
         return;
     }
 
     try {
         const data = await apiCall('/api/agent/intel', {
             method: 'POST',
-            body: JSON.stringify({ user_id: userId })
+            body: JSON.stringify({ user_id: internalId })
         });
+
+        console.log('Intel response:', data);
 
         if (data.success) {
             renderIntelligenceResults(data);
@@ -96,7 +127,15 @@ async function searchIntelligence() {
         }
     } catch (error) {
         console.error('Error fetching intelligence:', error);
-        showNotification('Error fetching intelligence data', 'error');
+        
+        // if we already have results visible, don’t scream
+        const hasResults =
+            document.getElementById('intelResults')?.style.display === 'block';
+
+        if (!hasResults) {
+            const msg = error?.message || 'Error fetching intelligence data';
+            showNotification(msg, 'error');
+        }
     }
 }
 
@@ -133,7 +172,9 @@ function renderIntelProfile(profile, metrics) {
         <div style="display: grid; gap: 12px;">
             <div class="profile-stat">
                 <span style="color: var(--gray); font-size: 13px;">Trust Score</span>
-                <span style="font-size: 24px; font-weight: 700; color: ${getTrustColor(profile.trust_score)}">${profile.trust_score?.toFixed(1) || 'N/A'}</span>
+                <span style="font-size: 24px; font-weight: 700; color: ${getTrustColor(profile.trust_score)}">
+                    ${typeof profile.trust_score === 'number' ? profile.trust_score.toFixed(1) : 'N/A'}
+                </span>
             </div>
             <div class="profile-stat">
                 <span style="color: var(--gray); font-size: 13px;">Avg Amount</span>
@@ -141,15 +182,21 @@ function renderIntelProfile(profile, metrics) {
             </div>
             <div class="profile-stat">
                 <span style="color: var(--gray); font-size: 13px;">Avg Risk</span>
-                <span style="font-size: 18px; font-weight: 600;">${profile.risk_stats?.avg_risk_score?.toFixed(2) || 0}</span>
+                <span style="font-size: 18px; font-weight: 600;">
+                    ${profile.risk_stats?.avg_risk_score?.toFixed(2) || 0}
+                </span>
             </div>
             <div class="profile-stat">
                 <span style="color: var(--gray); font-size: 13px;">High Risk Txns</span>
-                <span style="font-size: 18px; font-weight: 600;">${profile.risk_stats?.high_risk_txn_count || 0}</span>
+                <span style="font-size: 18px; font-weight: 600;">
+                    ${profile.risk_stats?.high_risk_txn_count || 0}
+                </span>
             </div>
             <div class="profile-stat">
                 <span style="color: var(--gray); font-size: 13px;">Total Transactions</span>
-                <span style="font-size: 18px; font-weight: 600;">${profile.risk_stats?.total_txn_count || 0}</span>
+                <span style="font-size: 18px; font-weight: 600;">
+                    ${profile.risk_stats?.total_txn_count || 0}
+                </span>
             </div>
         </div>
     `;
@@ -163,13 +210,17 @@ function getTrustColor(score) {
 }
 
 function renderIntelRiskChart(trend) {
-    const ctx = document.getElementById('intelRiskChart');
-    
+    const canvas = document.getElementById('intelRiskChart');
+
+    // Force a sane height (so it doesn't keep stretching)
+    canvas.style.height = '260px';
+    canvas.height = 260;
+
     if (charts.intelRisk) {
         charts.intelRisk.destroy();
     }
 
-    charts.intelRisk = new Chart(ctx, {
+    charts.intelRisk = new Chart(canvas, {
         type: 'line',
         data: {
             labels: trend.map(d => d.date),
@@ -202,9 +253,26 @@ function renderIntelRiskChart(trend) {
     });
 }
 
+function safeParseMaybeJSON(value) {
+    if (!value || typeof value !== 'string') return value;
+
+    const trimmed = value.trim();
+    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+        // clearly not JSON (e.g. "No recent activity..."), just return as-is
+        return value;
+    }
+
+    try {
+        return JSON.parse(trimmed);
+    } catch (e) {
+        console.warn('Failed to parse LLM JSON:', e, value);
+        return value;
+    }
+}
+
 function renderAiAnalysis(summary) {
     const div = document.getElementById('intelAiAnalysis');
-    
+
     if (!summary) {
         div.innerHTML = '<p style="color: var(--gray);">No AI analysis available</p>';
         return;
@@ -212,58 +280,92 @@ function renderAiAnalysis(summary) {
 
     let html = '<div style="display: grid; gap: 20px;">';
 
-    // Behavior Summary
+    // --- Behaviour summary ---
     if (summary.behaviour) {
-        const behaviour = typeof summary.behaviour === 'string' 
-            ? JSON.parse(summary.behaviour) 
-            : summary.behaviour;
-        
+        const parsed = safeParseMaybeJSON(summary.behaviour);
+
+        let verdict = 'N/A';
+        let summaryText = 'No summary available';
+        let patterns = [];
+
+        if (parsed && typeof parsed === 'object') {
+            verdict = parsed.verdict || 'N/A';
+            summaryText = parsed.summary || 'No summary available';
+            patterns = Array.isArray(parsed.key_patterns) ? parsed.key_patterns : [];
+        } else if (typeof parsed === 'string') {
+            summaryText = parsed; // plain text fallback
+        }
+
         html += `
             <div class="ai-section">
                 <h5 style="color: var(--primary); margin-bottom: 8px;">Behavior Analysis</h5>
-                <p style="color: var(--dark); margin-bottom: 8px;"><strong>Verdict:</strong> ${behaviour.verdict || 'N/A'}</p>
-                <p style="color: var(--gray); font-size: 14px; line-height: 1.6;">${behaviour.summary || 'No summary available'}</p>
-                ${behaviour.key_patterns && behaviour.key_patterns.length > 0 ? `
-                    <ul style="margin-top: 8px; padding-left: 20px;">
-                        ${behaviour.key_patterns.map(p => `<li style="color: var(--gray); font-size: 13px;">${p}</li>`).join('')}
-                    </ul>
-                ` : ''}
+                <p style="color: var(--dark); margin-bottom: 8px;"><strong>Verdict:</strong> ${verdict}</p>
+                <p style="color: var(--gray); font-size: 14px; line-height: 1.6;">${summaryText}</p>
+                ${
+                    patterns.length
+                        ? `<ul style="margin-top: 8px; padding-left: 20px;">
+                               ${patterns.map(p => `<li style="color: var(--gray); font-size: 13px;">${p}</li>`).join('')}
+                           </ul>`
+                        : ''
+                }
             </div>
         `;
     }
 
-    // Speculation
+    // --- Speculation ---
     if (summary.speculation) {
-        const speculation = typeof summary.speculation === 'string' 
-            ? JSON.parse(summary.speculation) 
-            : summary.speculation;
-        
+        const parsed = safeParseMaybeJSON(summary.speculation);
+
+        let score = 'N/A';
+        let explanation = 'No explanation available';
+        let indicators = [];
+
+        if (parsed && typeof parsed === 'object') {
+            score = parsed.speculation_score ?? 'N/A';
+            explanation = parsed.explanation || 'No explanation available';
+            indicators = Array.isArray(parsed.indicators) ? parsed.indicators : [];
+        } else if (typeof parsed === 'string') {
+            explanation = parsed;
+        }
+
         html += `
             <div class="ai-section">
                 <h5 style="color: var(--warning); margin-bottom: 8px;">Speculation Score</h5>
-                <p style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">${speculation.speculation_score || 'N/A'}/100</p>
-                <p style="color: var(--gray); font-size: 14px; line-height: 1.6;">${speculation.explanation || 'No explanation available'}</p>
-                ${speculation.indicators && speculation.indicators.length > 0 ? `
-                    <ul style="margin-top: 8px; padding-left: 20px;">
-                        ${speculation.indicators.map(i => `<li style="color: var(--gray); font-size: 13px;">${i}</li>`).join('')}
-                    </ul>
-                ` : ''}
+                <p style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">${score}/100</p>
+                <p style="color: var(--gray); font-size: 14px; line-height: 1.6;">${explanation}</p>
+                ${
+                    indicators.length
+                        ? `<ul style="margin-top: 8px; padding-left: 20px;">
+                               ${indicators.map(i => `<li style="color: var(--gray); font-size: 13px;">${i}</li>`).join('')}
+                           </ul>`
+                        : ''
+                }
             </div>
         `;
     }
 
-    // Investigation
+    // --- Investigation ---
     if (summary.investigation) {
-        const investigation = typeof summary.investigation === 'string' 
-            ? JSON.parse(summary.investigation) 
-            : summary.investigation;
-        
+        const parsed = safeParseMaybeJSON(summary.investigation);
+
+        let execSummary = 'No summary available';
+        let riskRating = 'N/A';
+        let action = 'N/A';
+
+        if (parsed && typeof parsed === 'object') {
+            execSummary = parsed.executive_summary || 'No summary available';
+            riskRating = parsed.risk_rating || 'N/A';
+            action = parsed.recommended_action || 'N/A';
+        } else if (typeof parsed === 'string') {
+            execSummary = parsed;
+        }
+
         html += `
             <div class="ai-section">
                 <h5 style="color: var(--danger); margin-bottom: 8px;">Investigation Case File</h5>
-                <p style="color: var(--gray); font-size: 14px; line-height: 1.6; margin-bottom: 8px;">${investigation.executive_summary || 'No summary available'}</p>
-                <p><strong>Risk Rating:</strong> <span class="badge-status badge-${investigation.risk_rating}">${investigation.risk_rating || 'N/A'}</span></p>
-                <p style="margin-top: 8px;"><strong>Recommended Action:</strong> ${investigation.recommended_action || 'N/A'}</p>
+                <p style="color: var(--gray); font-size: 14px; line-height: 1.6; margin-bottom: 8px;">${execSummary}</p>
+                <p><strong>Risk Rating:</strong> <span class="badge-status badge-${riskRating}">${riskRating}</span></p>
+                <p style="margin-top: 8px;"><strong>Recommended Action:</strong> ${action}</p>
             </div>
         `;
     }
@@ -350,7 +452,6 @@ function debounce(func, wait) {
 }
 
 function showNotification(message, type = 'info') {
-    // Simple notification - you can enhance this with a toast library
     const colors = {
         success: 'var(--success)',
         error: 'var(--danger)',

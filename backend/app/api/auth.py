@@ -1,7 +1,7 @@
 # backend/app/api/auth.py
 
 from datetime import datetime
-
+from typing import Optional
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -17,6 +17,15 @@ from backend.app.db.models.user import UserCreate, UserPublic
 
 router = APIRouter()
 
+def _generate_user_code(name: str) -> str:
+    """
+    Generate a human-readable user code like 'PRAT-0001'.
+    Very simple and not collision-proof, but fine for this project.
+    """
+    prefix = "".join(c for c in name.upper() if c.isalnum())[:4] or "USER"
+    count = users_col.count_documents({}) + 1
+    return f"{prefix}-{count:04d}"
+
 @router.get("/me")
 def read_me(current_user: dict = Depends(get_current_user)):
     """
@@ -25,9 +34,12 @@ def read_me(current_user: dict = Depends(get_current_user)):
     """
     return {
         "user_id": current_user["user_id"],
+        "user_code": current_user.get("user_code"),
+        "name": current_user.get("name"),
         "email": current_user["email"],
         "role": current_user["role"],
     }
+
 
 # ---------- ADMIN-ONLY REGISTER ----------
 
@@ -45,11 +57,14 @@ def register(payload: UserCreate, admin: dict = Depends(get_current_admin)):
         )
 
     password_hash = get_password_hash(payload.password)
+    user_code = _generate_user_code(payload.name)
 
     user_doc = {
+        "name": payload.name,
         "email": payload.email,
         "password_hash": password_hash,
         "role": payload.role,
+        "user_code": user_code,
         "created_at": datetime.utcnow(),
         "status": "active",
     }
@@ -59,9 +74,12 @@ def register(payload: UserCreate, admin: dict = Depends(get_current_admin)):
 
     return UserPublic(
         user_id=user_id,
+        user_code=user_code,
+        name=payload.name,
         email=payload.email,
         role=payload.role,
     )
+
 
 
 # ---------- PUBLIC LOGIN (OAuth2 password flow) ----------
@@ -92,7 +110,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         "access_token": token,
         "token_type": "bearer",
         "user": {
-            "user_id": str(user["_id"]),
+            "user_id": str(user["_id"]),              # internal id
+            "user_code": user.get("user_code"),       # human-readable id
+            "name": user.get("name"),
             "email": user["email"],
             "role": user["role"],
         }

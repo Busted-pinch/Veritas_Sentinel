@@ -1,0 +1,20 @@
+//BACKEND
+setup venv
+install requirements
+venv\Scripts\Activate
+uvicorn backend.app.main:app --reload
+
+//FRONTEND
+New terminal
+cd Veritas_Sentinel/frontend
+python -m http.server 5173
+
+//Browser
+http://localhost:5173/login.html
+
+
+
+
+dark theme
+same design
+issue with graph 30 day

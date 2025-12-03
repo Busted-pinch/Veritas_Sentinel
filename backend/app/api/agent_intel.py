@@ -76,6 +76,7 @@ def _clean_alerts(alerts: List[Dict]) -> List[Dict]:
         cleaned.append({
             "alert_id": a.get("alert_id"),
             "txn_id": a.get("txn_id"),
+            "user_code": a.get("user_code"),
             "risk_level": a.get("risk_level"),
             "final_risk_score": a.get("final_risk_score"),
             "reason": a.get("reason"),
@@ -85,6 +86,7 @@ def _clean_alerts(alerts: List[Dict]) -> List[Dict]:
             "resolved_by": a.get("resolved_by"),
         })
     return cleaned
+
 
 
 @router.post("/intel")

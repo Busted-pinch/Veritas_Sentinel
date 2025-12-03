@@ -187,9 +187,75 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Users Page -->
                 <div class="page-content" id="usersPage">
+                    <!-- Create User Card -->
+                    <div class="intel-search-card create-user-card">
+                        <h3>Create New User</h3>
+                        <p style="color: var(--gray); font-size: 14px; margin-bottom: 16px;">
+                            Admin-only: create login accounts for analysts or test users.
+                        </p>
+
+                        <form id="createUserForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="newUserName">Name</label>
+                                    <input
+                                        type="text"
+                                        id="newUserName"
+                                        placeholder="Prathamesh Mete"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="newUserEmail">Email</label>
+                                    <input
+                                        type="email"
+                                        id="newUserEmail"
+                                        placeholder="user@example.com"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="newUserPassword">Password</label>
+                                    <input
+                                        type="password"
+                                        id="newUserPassword"
+                                        placeholder="Minimum 6 characters"
+                                        minlength="6"
+                                        required
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="newUserRole">Role</label>
+                                    <select id="newUserRole">
+                                        <option value="user" selected>User</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-actions" style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 12px;">
+                                <button type="button" class="btn-secondary" id="resetCreateUser">
+                                    Clear
+                                </button>
+                                <button type="submit" class="btn-primary">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                    <span>Create User</span>
+                                </button>
+                            </div>
+                        </form>
+
+                    </div>
+
                     <div class="table-card">
                         <div class="table-header">
                             <h3>All Users</h3>
@@ -198,13 +264,15 @@
                                     <circle cx="11" cy="11" r="8"/>
                                     <path d="m21 21-4.35-4.35"/>
                                 </svg>
-                                <input type="text" id="userSearch" placeholder="Search by email...">
+                                <input type="text" id="userSearch" placeholder="Search by email.">
                             </div>
                         </div>
                         <div class="table-wrapper">
                             <table id="usersTable">
                                 <thead>
                                     <tr>
+                                        <th>User Code</th>
+                                        <th>Name</th>
                                         <th>Email</th>
                                         <th>Role</th>
                                         <th>Status</th>
@@ -213,7 +281,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="usersTableBody">
-                                    <tr><td colspan="5" class="loading">Loading users...</td></tr>
+                                    <tr><td colspan="5" class="loading">Loading users.</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -296,7 +364,7 @@
                     <div class="intel-search-card">
                         <h3>User Intelligence Search</h3>
                         <div class="intel-search-box">
-                            <input type="text" id="intelUserId" placeholder="Enter User ID">
+                            <input type="text" id="intelUserId" placeholder="Enter User Code or Email">
                             <button class="btn-primary" id="searchIntelBtn">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="11" cy="11" r="8"/>
@@ -371,5 +439,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/admin_dashboard.js"></script>
+    <script src="js/admin_dashboard_alerts.js"></script>
 </body>
 </html>

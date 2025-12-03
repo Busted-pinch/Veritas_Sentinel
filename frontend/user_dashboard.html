@@ -146,6 +146,21 @@
                                 <div class="stat-value" id="highRiskCount">--</div>
                             </div>
                         </div>
+                        <!-- New: Current Balance -->
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #34d399 0%, #10b981 100%);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="5" width="18" height="14" rx="2" ry="2" />
+                                    <line x1="3" y1="10" x2="21" y2="10" />
+                                    <circle cx="9" cy="14" r="1.5" />
+                                    <path d="M14 14h4" />
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-label">Current Balance</div>
+                                <div class="stat-value" id="balanceValue">₹0.00</div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="chart-card">
@@ -157,12 +172,66 @@
                         </div>
                     </div>
 
+                    <!-- 🔹 NEW: Recent transactions + alerts -->
+                    <div class="dual-card-grid">
+                        <div class="table-card">
+                            <div class="table-header">
+                                <h3>Recent Transactions</h3>
+                            </div>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Type</th>
+                                            <th>Amount</th>
+                                            <th>Channel</th>
+                                            <th>Risk</th>
+                                            <th>When</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentTxBody">
+                                        <tr>
+                                            <td colspan="6" class="loading">No transactions yet</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="table-card">
+                            <div class="table-header">
+                                <h3>Alerts on Your Account</h3>
+                            </div>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Alert ID</th>
+                                            <th>Risk</th>
+                                            <th>Score</th>
+                                            <th>Status</th>
+                                            <th>When</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentAlertBody">
+                                        <tr>
+                                            <td colspan="5" class="loading">No alerts yet</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+
                     <div class="info-message">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"/>
                             <line x1="12" y1="16" x2="12" y2="12"/>
                             <line x1="12" y1="8" x2="12.01" y2="8"/>
                         </svg>
+                    
                         <div>
                             <strong>Your data is secure</strong>
                             <p>All transactions are monitored in real-time using advanced AI algorithms to ensure your financial safety.</p>
@@ -184,6 +253,14 @@
                                 </div>
 
                                 <div class="form-group">
+                                    <label for="txnType">Type *</label>
+                                    <select id="txnType" name="txnType" required>
+                                        <option value="DEPOSIT">Deposit</option>
+                                        <option value="WITHDRAW">Withdraw</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
                                     <label for="channel">Channel *</label>
                                     <select id="channel" name="channel" required>
                                         <option value="">Select Channel</option>
@@ -194,6 +271,7 @@
                                     </select>
                                 </div>
                             </div>
+
 
                             <div class="form-row">
                                 <div class="form-group">
@@ -284,6 +362,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="js/user_dashboard.js"></script>
+    <script src="js/user.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # backend/app/services/behavior_summary_service.py
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from statistics import mean
 from typing import Dict, Any
 
@@ -10,25 +10,40 @@ from backend.app.services.llm_client import LLMClient
 llm = LLMClient(provider="openai")
 
 
+def _to_utc(dt: datetime) -> datetime:
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 def generate_behavior_summary(user_id: str) -> Dict[str, Any]:
     profile = profiles_col.find_one({"user_id": user_id})
     if not profile:
         return {"success": False, "message": "User profile not found"}
 
-    # fetch last ~100 txns and filter by 30 days in Python
     raw_txns = list(
         txns_col.find({"user_id": user_id}).sort("timestamp", -1).limit(100)
     )
 
-    cutoff = datetime.utcnow() - timedelta(days=30)
+    cutoff = _to_utc(datetime.utcnow()) - timedelta(days=30)
     txns = []
+
     for t in raw_txns:
         ts_raw = t.get("timestamp")
-        try:
-            ts = datetime.fromisoformat(ts_raw) if isinstance(ts_raw, str) else ts_raw
-        except Exception:
+
+        if isinstance(ts_raw, str):
+            try:
+                ts = datetime.fromisoformat(ts_raw)
+            except Exception:
+                continue
+        elif isinstance(ts_raw, datetime):
+            ts = ts_raw
+        else:
             continue
-        if ts >= cutoff:
+
+        ts_utc = _to_utc(ts)
+
+        if ts_utc >= cutoff:
             txns.append(t)
 
     if not txns:
@@ -50,7 +65,9 @@ def generate_behavior_summary(user_id: str) -> Dict[str, Any]:
         "low": sum(1 for t in txns if t["ml_scores"]["risk_level"] == "low"),
         "medium": sum(1 for t in txns if t["ml_scores"]["risk_level"] == "medium"),
         "high": sum(1 for t in txns if t["ml_scores"]["risk_level"] == "high"),
-        "critical": sum(1 for t in txns if t["ml_scores"]["risk_level"] == "critical"),
+        "critical": sum(
+            1 for t in txns if t["ml_scores"]["risk_level"] == "critical"
+        ),
     }
 
     prompt = f"""
