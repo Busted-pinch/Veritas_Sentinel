@@ -1,7 +1,7 @@
 # Veritas Sentinel
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Busted-pinch/Veritas_Sentinel/main/frontend/images/logo.png" width="600">
+<img src="https://raw.githubusercontent.com/Busted-pinch/Veritas_Sentinel/main/frontend/images/logo.png" width="500",height="250">
 </p>
 
 # **Veritas Sentinel**  
