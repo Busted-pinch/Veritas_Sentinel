@@ -1,0 +1,3 @@
+Trust score ring in user dashboard
+broken risk level distribution graph
+adding logo

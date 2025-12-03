@@ -274,7 +274,7 @@ function renderAiAnalysis(summary) {
     const div = document.getElementById('intelAiAnalysis');
 
     if (!summary) {
-        div.innerHTML = '<p style="color: var(--gray);">No AI analysis available</p>';
+        div.innerHTML = '<p style="color: var(--white);">No AI analysis available</p>';
         return;
     }
 
@@ -299,8 +299,8 @@ function renderAiAnalysis(summary) {
         html += `
             <div class="ai-section">
                 <h5 style="color: var(--primary); margin-bottom: 8px;">Behavior Analysis</h5>
-                <p style="color: var(--dark); margin-bottom: 8px;"><strong>Verdict:</strong> ${verdict}</p>
-                <p style="color: var(--gray); font-size: 14px; line-height: 1.6;">${summaryText}</p>
+                <p style="color: var(--white); margin-bottom: 8px;"><strong>Verdict:</strong> ${verdict}</p>
+                <p style="color: var(--white); font-size: 14px; line-height: 1.6;">${summaryText}</p>
                 ${
                     patterns.length
                         ? `<ul style="margin-top: 8px; padding-left: 20px;">

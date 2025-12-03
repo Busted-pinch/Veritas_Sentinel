@@ -41,10 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
     loadInitialData();
 });
 
+// ===== UPDATED: initializePage (capitalized username) =====
 function initializePage() {
-    // Set user info
-    document.getElementById('userName').textContent = user.email?.split('@')[0] || 'Admin';
-    document.getElementById('userInitials').textContent = (user.email?.[0] || 'A').toUpperCase();
+    // Set user info with capitalized name
+    const userEmail = user.email || '';
+    const userName = userEmail.split('@')[0] || 'Admin';
+    const capitalizedName = userName.charAt(0).toUpperCase() + userName.slice(1);
+
+    document.getElementById('userName').textContent = capitalizedName;
+    document.getElementById('userInitials').textContent = userName.charAt(0).toUpperCase();
 }
 
 function setupEventListeners() {
@@ -89,12 +94,12 @@ function setupEventListeners() {
     document.getElementById('closeModal')?.addEventListener('click', closeModal);
     document.getElementById('cancelResolve')?.addEventListener('click', closeModal);
     document.getElementById('confirmResolve')?.addEventListener('click', confirmResolveAlert);
-     // Create user form
+
+    // Create user form
     document.getElementById('createUserForm')?.addEventListener('submit', handleCreateUser);
     document.getElementById('resetCreateUser')?.addEventListener('click', () => {
         document.getElementById('createUserForm').reset();
     });
-
 }
 
 function navigateToPage(page) {
@@ -284,6 +289,7 @@ async function loadUsers(query = '') {
     }
 }
 
+// ===== UPDATED: renderUsersTable (capitalized + grouped) =====
 function renderUsersTable(users) {
     const tbody = document.getElementById('usersTableBody');
     
@@ -297,11 +303,17 @@ function renderUsersTable(users) {
 
     const renderRow = (user) => {
         const intelKey = user.user_code || user.email || user.user_id; // prefer code, then email, then internal id
+        
+        // Capitalize user name
+        const userName = user.name || '—';
+        const capitalizedName = userName !== '—' 
+            ? userName.charAt(0).toUpperCase() + userName.slice(1)
+            : '—';
 
         return `
             <tr>
                 <td>${user.user_code || '—'}</td>
-                <td>${user.name || '—'}</td>
+                <td style="text-transform: capitalize;">${capitalizedName}</td>
                 <td>${user.email}</td>
                 <td><span class="badge-status ${user.role === 'admin' ? 'badge-high' : 'badge-low'}">${user.role}</span></td>
                 <td><span class="badge-status badge-${user.status}">${user.status}</span></td>
@@ -313,7 +325,8 @@ function renderUsersTable(users) {
                 </td>
             </tr>
         `;
-    }
+    };
+
     let html = '';
 
     if (admins.length) {
@@ -432,13 +445,16 @@ async function loadGeoHotspots() {
     }
 }
 
+// ===== UPDATED: renderGeoMap with density + legend + dark tiles =====
 function renderGeoMap(points) {
     const mapDiv = document.getElementById('geoMap');
+    if (!mapDiv) return;
     
     if (!geoMap) {
         geoMap = L.map('geoMap').setView([20, 0], 2);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+            attribution: '© OpenStreetMap contributors',
+            className: 'dark-tiles'
         }).addTo(geoMap);
     } else {
         geoMap.eachLayer(layer => {
@@ -448,25 +464,105 @@ function renderGeoMap(points) {
         });
     }
 
+    const txnCounts = points.map(p => p.txn_count);
+    const riskScores = points.map(p => p.avg_risk);
+    const highRiskCounts = points.map(p => p.high_risk_count);
+    
+    const maxTxns = Math.max(...txnCounts, 1);
+    const maxRisk = Math.max(...riskScores, 1);
+    const maxHighRisk = Math.max(...highRiskCounts, 1);
+
     points.forEach(point => {
         const riskColor = point.avg_risk >= 70 ? '#ef4444' :
                          point.avg_risk >= 50 ? '#f59e0b' :
-                         point.avg_risk >= 30 ? '#3b82f6' : '#10b981';
+                         point.avg_risk >= 30 ? '#f59e0b' : '#10b981';
         
-        const radius = Math.max(point.txn_count * 1000, 50000);
+        const txnFactor = point.txn_count / maxTxns;
+        const riskFactor = point.avg_risk / 100;
+        const highRiskFactor = maxHighRisk > 0 ? point.high_risk_count / maxHighRisk : 0;
+        
+        const densityScore = (txnFactor * 0.4) + (riskFactor * 0.4) + (highRiskFactor * 0.2);
+        
+        const minRadius = 20000;
+        const maxRadius = 300000;
+        const logScale = Math.log(densityScore * 10 + 1) / Math.log(11); // 0–1
+        const radius = minRadius + (logScale * (maxRadius - minRadius));
+
+        const fillOpacity = 0.3 + (point.avg_risk / 100) * 0.3; // 0.3–0.6
 
         L.circle([point.lat, point.lon], {
             color: riskColor,
             fillColor: riskColor,
-            fillOpacity: 0.4,
-            radius: radius
+            fillOpacity: fillOpacity,
+            radius: radius,
+            weight: 2
         }).addTo(geoMap).bindPopup(`
-            <strong>${point.city || point.country}</strong><br>
-            Transactions: ${point.txn_count}<br>
-            Avg Risk: ${point.avg_risk}<br>
-            High Risk: ${point.high_risk_count}
+            <div style="color: #1e1e1e; font-family: 'Inter', sans-serif;">
+                <strong style="font-size: 16px; display: block; margin-bottom: 8px;">
+                    ${point.city ? point.city + ', ' : ''}${point.country}
+                </strong>
+                <div style="font-size: 13px; line-height: 1.6;">
+                    <div style="margin-bottom: 4px;">
+                        📊 <strong>Transactions:</strong> ${point.txn_count}
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        ⚠️ <strong>Avg Risk:</strong> ${point.avg_risk.toFixed(1)}
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        🚨 <strong>High Risk Events:</strong> ${point.high_risk_count}
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        📈 <strong>Fraud Probability:</strong> ${point.avg_fraud_probability?.toFixed(1) || 'N/A'}%
+                    </div>
+                    <div style="margin-top: 8px; padding: 4px 8px; background: ${riskColor}; color: white; 
+                                border-radius: 4px; display: inline-block; font-weight: 600; font-size: 11px;">
+                        Risk Density: ${(densityScore * 100).toFixed(0)}%
+                    </div>
+                </div>
+            </div>
         `);
     });
+
+    addMapLegend();
+}
+
+// Legend control for map
+function addMapLegend() {
+    if (document.getElementById('map-legend')) return;
+
+    const legend = L.control({ position: 'bottomright' });
+    
+    legend.onAdd = function() {
+        const div = L.DomUtil.create('div', 'map-legend');
+        div.id = 'map-legend';
+        div.style.cssText = `
+            background: rgba(30, 30, 30, 0.95);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #2d2d2d;
+            color: #e5e7eb;
+            font-size: 12px;
+            line-height: 1.8;
+            backdrop-filter: blur(10px);
+        `;
+        
+        div.innerHTML = `
+            <div style="font-weight: 600; margin-bottom: 8px; color: #c9a86a;">Risk Levels</div>
+            <div><span style="display: inline-block; width: 12px; height: 12px; background: #10b981; 
+                 border-radius: 50%; margin-right: 6px;"></span> Low (&lt;30)</div>
+            <div><span style="display: inline-block; width: 12px; height: 12px; background: #f59e0b; 
+                 border-radius: 50%; margin-right: 6px;"></span> Medium (30-70)</div>
+            <div><span style="display: inline-block; width: 12px; height: 12px; background: #ef4444; 
+                 border-radius: 50%; margin-right: 6px;"></span> High (&gt;70)</div>
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #2d2d2d; font-style: italic; color: #9ca3af;">
+                Circle size = risk density
+            </div>
+        `;
+        
+        return div;
+    };
+    
+    legend.addTo(geoMap);
 }
 
 async function loadGlobalRiskTrend() {
@@ -559,4 +655,29 @@ function renderFraudTrendChart(days) {
             }
         }
     });
+}
+
+// ===== DARK MAP TILE CSS INJECTION =====
+const mapStyle = document.createElement('style');
+mapStyle.textContent = `
+    .dark-tiles {
+        filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+    }
+    .leaflet-popup-content-wrapper {
+        background: #ffffff !important;
+        border-radius: 8px;
+    }
+    .leaflet-popup-tip {
+        background: #ffffff !important;
+    }
+`;
+document.head.appendChild(mapStyle);
+
+// ===== SIMPLE DEBOUNCE =====
+function debounce(fn, delay) {
+    let t;
+    return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), delay);
+    };
 }

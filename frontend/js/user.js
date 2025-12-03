@@ -19,11 +19,19 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDashboardData();
 });
 
+// ===== UPDATED initializePage (capitalized username) =====
 function initializePage() {
-    const userName = user.email?.split('@')[0] || 'User';
-    document.getElementById('userName').textContent = userName;
-    document.getElementById('userInitials').textContent = (user.email?.[0] || 'U').toUpperCase();
-    document.getElementById('welcomeName').textContent = userName;
+    // Extract and capitalize username
+    const userEmail = user.email || '';
+    const userName = userEmail.split('@')[0] || 'User';
+    const capitalizedName = userName.charAt(0).toUpperCase() + userName.slice(1);
+    
+    // Set in sidebar
+    document.getElementById('userName').textContent = capitalizedName;
+    document.getElementById('userInitials').textContent = userName.charAt(0).toUpperCase();
+    
+    // Set in welcome banner
+    document.getElementById('welcomeName').textContent = capitalizedName;
 }
 
 function setupEventListeners() {
@@ -97,41 +105,78 @@ async function apiCall(endpoint, options = {}) {
 
 // ===== DASHBOARD DATA =====
 async function loadDashboardData() {
-    try {
-        const [summary, trend, history, alerts] = await Promise.all([
-            apiCall('/api/transactions/me/summary'),
-            apiCall('/api/transactions/me/risk-trend'),
-            apiCall('/api/transactions/me/history?limit=10'),
-            apiCall('/api/transactions/me/alerts?limit=10'),
-        ]);
+    console.log('Loading dashboard data...');
 
-        updateDashboardUI(summary, trend, history, alerts);
-    } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        showNotification('Failed to load dashboard data', 'error');
+    // helper to safely call an endpoint without killing everything
+    const safeCall = async (label, endpoint) => {
+        try {
+            const data = await apiCall(endpoint);
+            console.log(`${label} OK:`, data);
+            return data;
+        } catch (err) {
+            console.error(`${label} FAILED for ${endpoint}`, err);
+            return null; // let UI handle missing piece
+        }
+    };
+
+    const [
+        summary,
+        trend,
+        history,
+        alerts
+    ] = await Promise.all([
+        safeCall('summary', '/api/transactions/me/summary'),
+        safeCall('trend', '/api/transactions/me/risk-trend'),
+        safeCall('history', '/api/transactions/me/history?limit=10'),
+        safeCall('alerts', '/api/transactions/me/alerts?limit=10'),
+    ]);
+
+    if (!summary) {
+        // only shout at user if the *core* summary failed
+        showNotification('Failed to load dashboard summary', 'error');
     }
+
+    updateDashboardUI(summary, trend, history, alerts);
 }
+
 
 function updateDashboardUI(summaryData, trendData, historyData, alertsData) {
     if (!summaryData || !summaryData.success) return;
 
     const profile = summaryData.profile;
 
-    // ---- Trust score ring ----
-    if (profile && profile.trust_score !== undefined) {
-        const trustScore = profile.trust_score;
-        document.getElementById('trustScoreValue').textContent = trustScore.toFixed(0);
+            // ---- Trust score ring ----
+            console.log('Summary data in updateDashboardUI:', summaryData);
 
-        const circle = document.getElementById('trustProgressCircle');
-        const circumference = 283;
-        const offset = circumference - (trustScore / 100) * circumference;
-        circle.style.strokeDashoffset = offset;
+            if (profile && profile.trust_score !== undefined) {
+                let trustScore = profile.trust_score;
+                trustScore = Math.max(0, Math.min(100, trustScore));
 
-        if (trustScore >= 80) circle.style.stroke = '#10b981';
-        else if (trustScore >= 60) circle.style.stroke = '#3b82f6';
-        else if (trustScore >= 40) circle.style.stroke = '#f59e0b';
-        else circle.style.stroke = '#ef4444';
-    }
+                const trustScoreEl = document.getElementById('trustScoreValue');
+                const circle = document.getElementById('trustProgressCircle');
+
+                console.log('Trust score:', trustScore, 'circle element:', circle);
+
+                if (trustScoreEl) {
+                    trustScoreEl.textContent = trustScore.toFixed(0);
+                }
+
+                if (circle) {
+                    const radius = circle.r.baseVal.value;        // should be 42
+                    const circumference = 2 * Math.PI * radius;
+
+                    circle.style.strokeDasharray = `${circumference} ${circumference}`;
+                    const offset = circumference * (1 - trustScore / 100);
+                    circle.style.strokeDashoffset = offset;
+
+                    if (trustScore >= 80) circle.style.stroke = '#10b981';
+                    else if (trustScore >= 60) circle.style.stroke = '#3b82f6';
+                    else if (trustScore >= 40) circle.style.stroke = '#f59e0b';
+                    else circle.style.stroke = '#ef4444';
+                }
+            }
+
+
 
     // ---- Stats cards ----
     if (profile) {
@@ -227,6 +272,7 @@ function renderRiskTrendChart(days) {
     });
 }
 
+// ===== UPDATED renderRecentTransactions (capitalized type) =====
 function renderRecentTransactions(transactions) {
     const tbody = document.getElementById('recentTxBody');
 
@@ -246,11 +292,15 @@ function renderRecentTransactions(transactions) {
             const amount = typeof txn.amount === 'number'
                 ? `₹${txn.amount.toFixed(2)}`
                 : '—';
+            
+            // Capitalize transaction type
+            const txnType = (txn.txn_type || 'withdraw').toLowerCase();
+            const capitalizedType = txnType.charAt(0).toUpperCase() + txnType.slice(1);
 
             return `
             <tr>
                 <td>${txn.txn_id || '—'}</td>
-                <td>${(txn.txn_type || '').toString().toUpperCase()}</td>
+                <td><span style="font-weight: 600;">${capitalizedType}</span></td>
                 <td>${amount}</td>
                 <td>${txn.channel || '—'}</td>
                 <td>
@@ -386,6 +436,8 @@ function displayTransactionResult(result) {
     const fraudProb = scores.fraud_probability || 0;
     const anomalyScore = scores.anomaly_score || 0;
 
+    console.log('Result scores:', { riskLevel, riskScore, fraudProb, anomalyScore });
+
     const riskColor = getRiskLevelColor(riskLevel);
 
     resultContent.innerHTML = `
@@ -401,19 +453,25 @@ function displayTransactionResult(result) {
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                <div style="padding: 20px; background: var(--bg); border-radius: 12px;">
+                <div style="padding: 20px; background: var(--dark-card); border-radius: 12px;">
                     <p style="color: var(--gray); font-size: 13px; margin-bottom: 4px;">Fraud Probability</p>
-                    <p style="font-size: 24px; font-weight: 700; color: var(--dark);">${fraudProb.toFixed(1)}%</p>
+                    <p style="font-size: 24px; font-weight: 700; color: var(--white);">
+                        ${fraudProb.toFixed(1)}%
+                    </p>
                 </div>
 
-                <div style="padding: 20px; background: var(--bg); border-radius: 12px;">
+                <div style="padding: 20px; background: var(--dark-card); border-radius: 12px;">
                     <p style="color: var(--gray); font-size: 13px; margin-bottom: 4px;">Anomaly Score</p>
-                    <p style="font-size: 24px; font-weight: 700; color: var(--dark);">${anomalyScore.toFixed(1)}</p>
+                    <p style="font-size: 24px; font-weight: 700; color: var(--white);">
+                        ${anomalyScore.toFixed(1)}
+                    </p>
                 </div>
 
-                <div style="padding: 20px; background: var(--bg); border-radius: 12px;">
+                <div style="padding: 20px; background: var(--dark-card); border-radius: 12px;">
                     <p style="color: var(--gray); font-size: 13px; margin-bottom: 4px;">Trust Score</p>
-                    <p style="font-size: 24px; font-weight: 700; color: var(--dark);">${(scores.trust_score || 0).toFixed(1)}</p>
+                    <p style="font-size: 24px; font-weight: 700; color: var(--white);">
+                        ${(scores.trust_score || 0).toFixed(1)}
+                    </p>
                 </div>
             </div>
         </div>

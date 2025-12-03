@@ -12,9 +12,3 @@ python -m http.server 5173
 //Browser
 http://localhost:5173/login.html
 
-
-
-
-dark theme
-same design
-issue with graph 30 day
