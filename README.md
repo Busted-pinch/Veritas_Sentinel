@@ -2,332 +2,246 @@
 <p align="center">
 <img src="https://raw.githubusercontent.com/Busted-pinch/Veritas_Sentinel/main/frontend/images/Banner.png" width="650" height="325">
 </p>
+# 🚨 Veritas Sentinel  
+### AI-Powered Fraud Detection & Real-Time Risk Intelligence System  
+MIT Licensed • Full-Stack • ML-Driven • FinTech
 
-# **Veritas Sentinel**  
-### **AI-Driven Fraud Detection & Risk Intelligence Platform**
+Veritas Sentinel is an end-to-end **fraud detection and risk scoring platform** designed for fintech applications.  
+It combines a **FastAPI backend**, **React frontend**, and a modular **Machine Learning Engine** to process transactions, detect anomalies, and score fraud likelihood in real-time.
 
-Veritas Sentinel is a full-stack FinTech solution that provides real-time fraud detection, behavioral risk scoring, financial threat analytics, and user-level risk monitoring.  
-Built for enterprise-grade security, Veritas Sentinel combines:
-
-- A scalable **FastAPI backend**
-- An AI-powered **ML scoring engine**
-- A modern **HTML/CSS/JS frontend**
-- Real-time **Fraud Analytics & Geo-Risk Visualization**
-- Secure **JWT-based authentication**  
-- Admin & User dashboards for role-based operations
+This project is built for **portfolio demonstration**, **learning advanced AI workflows**, and **showcasing full-stack ML product engineering**.
 
 ---
 
-## **Table of Contents**
-1. [Overview](#overview)  
-2. [Features](#features)  
-3. [System Architecture](#system-architecture)  
-4. [Technology Stack](#technology-stack)  
-5. [Core Modules](#core-modules)  
-6. [Machine Learning Engine](#machine-learning-engine)  
-7. [Geo-Risk Mapping](#geo-risk-mapping)  
-8. [Frontend Modules](#frontend-modules)  
-9. [Installation](#installation)  
-10. [Environment Variables](#environment-variables)  
-11. [API Endpoints](#api-endpoints)  
-12. [Screenshots (Optional)](#screenshots-optional)  
-13. [Future Enhancements](#future-enhancements)  
-14. [License](#license)
+## ⚡ Key Features
+
+- 🔍 **AI-Driven Fraud Detection** using anomaly detection + predictive models  
+- 📊 **Real-Time Risk Scoring Engine**  
+- 🧠 **Modular ML Engine** with training, inference, and evaluation  
+- 🌐 **FastAPI Backend** with clean REST endpoints  
+- 🎨 **React Frontend Dashboard** for alerts, analytics, and transaction monitoring  
+- 🧪 **Synthetic Demo Dataset + Seeder Script**  
+- 🔐 **Secure API Structure** with reusable services  
+- 📦 **Complete Project Architecture (Backend + Frontend + ML)**  
+- 🛠️ **Easy local setup** with virtual environments or Docker (optional)  
+- 📈 **Extendable for credit risk, anomaly detection pipelines, agentic systems, etc.**
 
 ---
 
-# **Overview**
-
-Veritas Sentinel is designed to detect financial fraud patterns and anomalous transaction behavior by applying Machine Learning, geolocation intelligence, and behavioral analytics.  
-
-The system provides:
-
-- **User Dashboard** for personal transaction monitoring  
-- **Admin Dashboard** for organization-wide fraud visibility  
-- **Automated alerting** for suspicious activities  
-- **Geo-risk heatmaps** showing high-risk regions  
-- **Transaction scoring engine** powered by an AI model  
-
-The platform can be integrated with banking systems, payment processors, or digital finance apps.
-
----
-
-# **Features**
-
-### **User-Facing Features**
-✔ Real-time transaction scoring  
-✔ Personal risk trend visualization  
-✔ Dynamic trust score calculation  
-✔ Alert history and event logs  
-✔ Create transactions with geo-location & device attributes  
-
-### **Admin-Facing Features**
-✔ Organization-wide user management  
-✔ Admin-level fraud alerts dashboard  
-✔ Geo-risk hotspot visualizations  
-✔ High-risk activity breakdown  
-✔ Advanced analytics (volume, fraud probability)  
-✔ Intelligence module for searching user risk footprint  
-
-### **Security Features**
-✔ JWT Authentication  
-✔ Role-based access control (Admin/User)  
-✔ Server-side validation  
-✔ Sanitized inputs and secure database operations  
-
-### **ML Engine**
-✔ ML scoring pipeline  
-✔ Fraud probability estimation  
-✔ Anomaly scoring  
-✔ Multi-factor risk classification  
-
----
-
-# **System Architecture**
+## 📁 Project Structure
 
 ```
-                    ┌───────────────────────┐
-                    │     Frontend UI       │
-                    │  (HTML, CSS, JS)      │
-                    └──────────┬────────────┘
-                               │
-                REST API Calls │
-                               ▼
-           ┌────────────────────────────────┐
-           │            Backend API          │
-           │            (FastAPI)            │
-           ├────────────────────────────────┤
-           │  Authentication Module          │
-           │  Transaction Engine             │
-           │  Alerts & Risk Analysis         │
-           │  Geo-Risk Aggregation           │
-           │  User Management                │
-           └───────────┬─────────┬──────────┘
-                       │         │
-                       ▼         ▼
-          ┌────────────────┐   ┌────────────────┐
-          │ ML Engine      │   │ Database        │
-          │ (Risk Model)   │   │ MongoDB         │
-          └────────────────┘   └────────────────┘
+Veritas_Sentinel/
+│
+├── backend/
+│   ├── app/
+│   ├── core/
+│   ├── routes/
+│   ├── services/
+│   └── tests/ (recommended)
+│
+├── frontend/
+│   ├── src/
+│   └── public/
+│
+├── ml_engine/
+│   ├── models/
+│   ├── training/
+│   ├── inference/
+│   └── evaluation/
+│
+├── seed_demo_data.py
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
-# **Technology Stack**
+## 🏗️ System Architecture (High-Level)
 
-### **Frontend**
-- HTML5, CSS3  
-- Vanilla JavaScript  
-- Leaflet.js (Maps)  
-- Chart.js (Charts)  
-
-### **Backend**
-- **FastAPI**  
-- Python 3.10+  
-- JWT Authentication  
-- Pydantic Models  
-- Uvicorn  
-
-### **Database**
-- **MongoDB** (Users, Transactions, Alerts)
-
-### **Machine Learning**
-- Scikit-Learn / Custom Models  
-- Feature Engineering Pipeline  
-- Risk Classification & Scoring  
+```
+                ┌─────────────────────┐
+                │   React Frontend    │
+                │  (Dashboard + UI)   │
+                └──────────┬──────────┘
+                           │ REST API
+                ┌──────────▼──────────┐
+                │     FastAPI API      │
+                │ (Auth, Services, ML) │
+                └──────────┬──────────┘
+                        API Calls
+                ┌──────────▼──────────┐
+                │    ML Engine        │
+                │ (Model + Scoring)   │
+                └──────────┬──────────┘
+                           │
+                  Demo / Synthetic Data
+```
 
 ---
 
-# **Core Modules**
+## 🧠 Machine Learning Engine Overview
 
-## **1. Authentication**
-- JWT-based sign-in/sign-up  
-- Role-based route protection  
-- Secure token validation  
-- Password hashing with `passlib`
+The **ML Engine** provides:
 
-## **2. User Management**
-Admin features include:
-- Create user  
-- View user list  
-- Assign roles  
-- Status tracking  
-- Risk summary lookup
-
-## **3. Transactions Module**
-Handles:
-- Transaction creation  
-- ML-based scoring  
-- Fraud probability  
-- Anomaly score  
-- Trust score computation  
-- History and logs  
-
-## **4. Alerts Engine**
-Automatically generates alerts based on:
-- High-risk scores  
-- Suspicious location patterns  
-- Device inconsistency  
-- Velocity checks  
-
-Each alert includes:
-- Risk level  
-- Fraud probability  
-- Classification  
-- Actions (Resolve, Mark Legit)
-
-## **5. Analytics & Reporting**
-Provides insights such as:
-- Global risk trends  
-- Volume charts  
-- High-risk activity distribution  
-- Real-time summary metrics  
-
----
-
-# **Machine Learning Engine**
-
-The ML engine computes:
-
-### **1. Final Risk Score**
-Multi-factor fusion of:
-- Transaction attributes  
-- Behavioral patterns  
-- Geolocation data  
-- Prior anomalies  
-- ML prediction  
-
-### **2. Fraud Probability**
-Generated using supervised classification model (Logistic Regression / RandomForest / etc.)
-
-### **3. Anomaly Score**
-Computed using:
-- Isolation Forest  
-- Statistical deviation  
+- Feature engineering  
 - Outlier detection  
+- Fraud probability estimation  
+- Risk scoring pipeline  
+- Model persistence  
+- Evaluation & metrics  
 
-### **4. Trust Score**
-Weighted combination of multiple signals:
-- Avg risk trend  
-- User consistency  
-- Historical alerts  
-- Transaction behavior  
-
----
-
-# **Geo-Risk Mapping**
-
-Geo analytics module computes risk heatmaps using:
-
-- Lat/Lon clusters  
-- Regional high-risk transactions  
-- Velocity risk  
-- Aggregated ML scores  
-
-Output includes:
-- Dynamic radius scaling  
-- Color-coded risk classes  
-- Real-time hotspot visualization  
-- Interactive map with Leaflet.js  
+It is structured so you can **replace the model** with XGBoost, LightGBM, deep learning, or anomaly detection modules.
 
 ---
 
-# **Frontend Modules**
+## 🚀 Quick Start Guide
 
-## **User Dashboard**
-Includes:
-- Trust score ring  
-- Recent transactions  
-- Alert history  
-- Risk trend chart  
-- Quick metrics  
-- New transaction form  
-
-## **Admin Dashboard**
-Includes:
-- Total users  
-- Alerts summary  
-- High-risk event timeline  
-- Analytics charts  
-- Geo-hotspots  
-- User intelligence search  
-- Create new users  
-
----
-
-# **Installation**
-
-### **Clone Repository**
+### **1. Clone the Repository**
 ```bash
 git clone https://github.com/Busted-pinch/Veritas_Sentinel.git
 cd Veritas_Sentinel
 ```
 
-### **Create Virtual Environment**
+---
+
+## 🖥️ Backend Setup (FastAPI)
+
+### **2. Create virtual environment**
 ```bash
-python -m venv venv
-source venv/bin/activate
-# Or for Windows:
-venv\Scripts\activate
+python3 -m venv venv
+source venv/bin/activate       # Linux/Mac
+venv\Scripts\activate          # Windows
 ```
 
-### **Install Dependencies**
+### **3. Install requirements**
 ```bash
 pip install -r requirements.txt
 ```
 
-### **Start Backend**
+### **4. Run the backend**
 ```bash
 uvicorn backend.app.main:app --reload
 ```
 
-### **Start Frontend**
-Use VSCode Live Server or any static server.
-
----
-
-# **Environment Variables**
-
-Create a `.env` file:
-
+### **5. Open API Docs**
 ```
-JWT_SECRET_KEY=your_secret_key
-MONGO_URI=mongodb://localhost:27017
-DB_NAME=veritas_db
+http://localhost:8000/docs
 ```
 
 ---
 
-# **API Endpoints**
+## 🌐 Frontend Setup (React)
 
-### **Auth**
-- POST `/auth/register`  
-- POST `/auth/login`
+```bash
+cd frontend
+npm install
+npm start
+```
 
-### **User**
-- GET `/api/transactions/me/summary`  
-- GET `/api/transactions/me/history`  
-- GET `/api/transactions/me/alerts`
-
-### **Admin**
-- GET `/api/admin/users`  
-- GET `/api/admin/alerts`  
-- GET `/api/admin/geo-hotspots`  
-- POST `/api/admin/create-user`
-
-### **Transaction**
-- POST `/api/transaction/new`
+Frontend runs on:
+```
+http://localhost:3000/
+```
 
 ---
 
-# **Future Enhancements**
-- LLM-powered fraud explanation  
-- Device fingerprinting  
-- Real-time WebSocket event streams  
-- Vector DB for anomaly search  
-- Advanced deep learning models  
+## 🧪 Load Demo Data
+
+The project includes a synthetic fraud-like dataset generator.
+
+Run:
+```bash
+python seed_demo_data.py
+```
 
 ---
 
-# **License**
-MIT License  
+## 🧵 Sample API Requests
+
+### **Score a transaction**
+
+```bash
+POST /api/v1/score
+```
+
+Example JSON:
+```json
+{
+  "transaction_id": "TXN123",
+  "amount": 4200,
+  "location": "IN-MH",
+  "channel": "UPI",
+  "timestamp": "2025-01-10T13:22:14",
+  "customer_age": 24
+}
+```
+
+Example Response:
+```json
+{
+  "risk_score": 0.87,
+  "label": "High Fraud Probability",
+  "explanation": "Amount unusually high compared to user history."
+}
+```
+
+---
+
+## 📊 Model Card (Summary)
+
+| Property | Details |
+|---------|---------|
+| Model Type | Supervised classifier + anomaly detector |
+| Input | Transaction metadata |
+| Outputs | Fraud probability, risk score |
+| Dataset | Synthetic (no real PII) |
+| Metrics | Precision, Recall, F1, ROC-AUC |
+| Limitations | Not suitable for real-world deployment without validation |
+
+---
+
+## 🔐 Security Notes
+
+- No real user or PII data included  
+- `.env.example` recommended  
+- Avoid production deployment without auth, HTTPS, and rate limiting  
+
+---
+
+## 🛠️ Recommended Improvements (Future Work)
+
+- Add Docker + `docker-compose.yml`  
+- Add CI (GitHub Actions)  
+- Add unit tests  
+- Add model retraining pipeline  
+- Add SHAP explainability  
+
+---
+
+## 📸 Screenshots (Placeholder)
+
+```
+/screenshots/dashboard.png
+/screenshots/alerts.png
+/screenshots/transactions.png
+```
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome!  
+Follow clean code, PEP8, and descriptive commit messages.
+
+---
+
+## 📜 License
+
+MIT License — free to modify, use, and distribute.
+
+---
+
+## ⭐ Support the Project
+
+If you found this useful, please give the repo a **star** ⭐
