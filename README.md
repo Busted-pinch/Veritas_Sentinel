@@ -94,20 +94,20 @@ The platform can be integrated with banking systems, payment processors, or digi
                 REST API Calls │
                                ▼
                ┌────────────────────────────────┐
-               │            Backend API          │
-               │            (FastAPI)            │
+               │            Backend API         │
+               │            (FastAPI)           │
                ├────────────────────────────────┤
-               │  Authentication Module          │
-               │  Transaction Engine             │
-               │  Alerts & Risk Analysis         │
-               │  Geo-Risk Aggregation           │
-               │  User Management                │
+               │  Authentication Module         │
+               │  Transaction Engine            │
+               │  Alerts & Risk Analysis        │
+               │  Geo-Risk Aggregation          │
+               │  User Management               │
                └───────────┬─────────┬──────────┘
                            │         │
                            ▼         ▼
               ┌────────────────┐   ┌────────────────┐
-              │ ML Engine      │   │ Database        │
-              │ (Risk Model)   │   │ MongoDB         │
+              │ ML Engine      │   │ Database       │
+              │ (Risk Model)   │   │ MongoDB        │
               └────────────────┘   └────────────────┘
 ```
 
